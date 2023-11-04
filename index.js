@@ -20,6 +20,8 @@ class Player {
     constructor({ position, orientation, speed }) {
         this.position = position
         this.orientation = orientation
+        this.width = TILE_SIZE
+        this.height = TILE_SIZE
         this.speed = speed
         this.alive = true
     }
@@ -43,10 +45,10 @@ class Player {
     }
 
     checkCollision(object) {
-        return this.position.x + this.speed * this.orientation.x + TILE_SIZE > object.position.x &&
-            this.position.x + this.speed * this.orientation.x < object.position.x + TILE_SIZE &&
-            this.position.y + this.speed * this.orientation.y + TILE_SIZE > object.position.y &&
-            this.position.y + this.speed * this.orientation.y < object.position.y + TILE_SIZE
+        return this.position.x + this.speed * this.orientation.x + this.width > object.position.x &&
+            this.position.x + this.speed * this.orientation.x < object.position.x + this.width &&
+            this.position.y + this.speed * this.orientation.y + this.height > object.position.y &&
+            this.position.y + this.speed * this.orientation.y < object.position.y + this.height
     }
 
     draw() {
@@ -55,18 +57,20 @@ class Player {
             c.fillStyle = "green"
         else
             c.fillStyle = "black"
-        c.fillRect(this.position.x, this.position.y, TILE_SIZE, TILE_SIZE)
+        c.fillRect(this.position.x, this.position.y, this.width, this.height)
     }
 }
 
 class Wall {
     constructor({ position }) {
         this.position = position
+        this.width = TILE_SIZE
+        this.height = TILE_SIZE
     }
 
     draw(canvas) {
         canvas.fillStyle = "red"
-        canvas.fillRect(this.position.x, this.position.y, TILE_SIZE, TILE_SIZE)
+        canvas.fillRect(this.position.x, this.position.y, this.width, this.height)
     }
 }
 
