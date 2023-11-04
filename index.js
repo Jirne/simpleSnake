@@ -31,7 +31,10 @@ class Player {
         for (let index = 0; index < walls.length; index++) {
             const wall = walls[index];
 
-            if (this.checkCollision(wall)) {
+            if (checkCollision({...this, position: {
+                x: this.position.x += this.speed * this.orientation.x,
+                y: this.position.y += this.speed * this.orientation.y
+            }}, wall)) {
                 movable = false
                 this.alive = false
                 break
@@ -44,12 +47,7 @@ class Player {
         }
     }
 
-    checkCollision(object) {
-        return this.position.x + this.speed * this.orientation.x + this.width > object.position.x &&
-            this.position.x + this.speed * this.orientation.x < object.position.x + this.width &&
-            this.position.y + this.speed * this.orientation.y + this.height > object.position.y &&
-            this.position.y + this.speed * this.orientation.y < object.position.y + this.height
-    }
+
 
     draw() {
         this.move()
@@ -75,6 +73,17 @@ class Wall {
 }
 
 class Food {
+    constructor({position}){
+        this.position = position
+        this.width = TILE_SIZE/2
+        this.height = TILE_SIZE/2
+    }
+
+    draw(){
+        //if(checkCollision(this, player))
+        c.fillStyle = "greenyellow"
+        canvas.fillRect(this.position.x, this.position.y, this.width, this.height)
+    }
 
 }
 
@@ -101,7 +110,14 @@ const player = new Player({
         x: 1,
         y: 0
     },
-    speed: 5
+    speed: 4
+})
+
+let food = new Food({
+    position: {
+        x: 50,
+        y: 50
+    }
 })
 
 
@@ -121,6 +137,7 @@ function frameUpdate() {
     c.clearRect(0, 0, c.canvas.width, c.canvas.height)
 
     player.draw()
+    food.draw()
 
 
 
@@ -141,6 +158,12 @@ function startAnimating(fps) {
 startAnimating(60);
 
 
+function checkCollision(object1, object2) {
+    return object1.position.x + object1.width > object2.position.x &&
+    object1.position.x < object2.position.x + object2.width &&
+    object1.position.y + object1.height > object2.position.y &&
+    object1.position.y < object2.position.y + object2.height
+}
 
 window.addEventListener("keydown", (e) => {
     switch (e.key) {
