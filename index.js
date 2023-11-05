@@ -22,8 +22,6 @@ class Player {
         this.width = TILE_SIZE
         this.height = TILE_SIZE
         this.orientation = orientation
-        this.width = TILE_SIZE
-        this.height = TILE_SIZE
         this.speed = speed
         this.alive = true
         this.body = []
@@ -45,11 +43,63 @@ class Player {
                 this.alive = false
                 break
             }
+
+            if(checkCollision( {
+                ...this, position: {
+                    x: this.position.x + this.speed * this.orientation.x,
+                    y: this.position.y + this.speed * this.orientation.y
+                }
+            }, food)){
+                this.body.push(new Body({
+                    position: {
+                        x: player.body[player.body.length - 1].position.x,
+                        y: player.body[player.body.length - 1].position.y
+                    }
+                }))
+
+            food.position.x = getRandomInt(TILE_SIZE + 1, c.canvas.width - (TILE_SIZE + 1 + this.width))
+            food.position.y = getRandomInt(TILE_SIZE + 1, c.canvas.height - (TILE_SIZE + 1 + this.height))
+
+            }
         }
 
         if (movable) {
             this.position.x += this.speed * this.orientation.x
             this.position.y += this.speed * this.orientation.y
+            this.body.forEach((part, i) => {
+                let ecart
+                if (i == 0) {
+                    ecart = {
+                        x: getMiddle(this).x - getMiddle(part).x,
+                        y: getMiddle(this).y - getMiddle(part).y
+                    }
+                }
+                else {
+                    ecart = {
+                        x: getMiddle(this.body[i - 1]).x - getMiddle(part).x,
+                        y: getMiddle(this.body[i - 1]).y - getMiddle(part).y
+                    }
+                }
+                if(i == 5)
+                    console.log(ecart)
+
+                if (Math.abs(ecart.x) > part.width || Math.abs(ecart.x) > 0 && Math.abs(ecart.y) != 0) {
+                    part.orientation.x = ecart.x / Math.abs(ecart.x)
+                }
+                else
+                    part.orientation.x = 0
+
+                if (Math.abs(ecart.y) > part.height || Math.abs(ecart.y) > 0 && Math.abs(ecart.x) != 0) {
+                    part.orientation.y = ecart.y / Math.abs(ecart.y)
+                }
+                else
+                    part.orientation.y = 0
+
+
+
+                part.position.x += this.speed * part.orientation.x
+                part.position.y += this.speed * part.orientation.y
+            });
         }
     }
 
@@ -63,14 +113,21 @@ class Player {
             c.fillStyle = "black"
 
         c.fillRect(this.position.x, this.position.y, this.width, this.height)
+        this.body.forEach(part => {
+            part.draw()
+        });
     }
 }
 
 class Body {
     constructor({ position }) {
         this.position = position
-        this.width = 2 * TILE_SIZE / 3
-        this.height = 2 * TILE_SIZE / 3
+        this.width = TILE_SIZE / 2
+        this.height = TILE_SIZE / 2
+        this.orientation = {
+            x: 0,
+            y: 0
+        }
     }
 
     draw() {
@@ -99,17 +156,6 @@ class Food {
     }
 
     draw() {
-        if (checkCollision(this, player)) {
-            player.body.push(new Body({
-                position: {
-                    x: player.position.x,
-                    y: player.position.y
-                }
-            }))
-
-            this.position.x = getRandomInt(TILE_SIZE + 1, c.canvas.width - (TILE_SIZE + 1))
-            this.position.y = getRandomInt(TILE_SIZE + 1, c.canvas.height - (TILE_SIZE + 1))
-        }
         c.fillStyle = "olive"
         c.fillRect(this.position.x, this.position.y, this.width, this.height)
     }
@@ -142,6 +188,13 @@ const player = new Player({
     speed: 4
 })
 
+player.body.push(
+    new Body({
+        position: {
+            x: player.position.x + (player.width / 2 - TILE_SIZE / 4),
+            y: player.position.y + (player.height / 2 - TILE_SIZE / 4)
+        }
+    }))
 const food = new Food({
     position: {
         x: getRandomInt(TILE_SIZE + 1, c.canvas.width - (TILE_SIZE + 1)),
@@ -216,6 +269,15 @@ window.addEventListener("keydown", (e) => {
             break
     }
 })
+
+
+function getMiddle(object) {
+    const position = {
+        x: object.position.x + object.width / 2,
+        y: object.position.y + object.height / 2
+    }
+    return position
+}
 
 function checkCollision(object1, object2) {
     return (object1.position.x + object1.width > object2.position.x &&
