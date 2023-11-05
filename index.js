@@ -19,9 +19,12 @@ const bc = canvasBackground.getContext("2d")
 class Player {
     constructor({ position, orientation, speed }) {
         this.position = position
+        this.width = TILE_SIZE
+        this.height = TILE_SIZE
         this.orientation = orientation
         this.speed = speed
         this.alive = true
+        this.body = []
     }
 
     move() {
@@ -29,7 +32,12 @@ class Player {
         for (let index = 0; index < walls.length; index++) {
             const wall = walls[index];
 
-            if (this.checkCollision(wall)) {
+            if (checkCollision({
+                ...this, position: {
+                    x: this.position.x + this.speed * this.orientation.x,
+                    y: this.position.y + this.speed * this.orientation.y
+                }
+            }, wall)) {
                 movable = false
                 this.alive = false
                 break
@@ -39,39 +47,70 @@ class Player {
         if (movable) {
             this.position.x += this.speed * this.orientation.x
             this.position.y += this.speed * this.orientation.y
+            console.log(this.body)
         }
     }
 
-    checkCollision(object) {
-        return this.position.x + this.speed * this.orientation.x + TILE_SIZE > object.position.x &&
-            this.position.x + this.speed * this.orientation.x < object.position.x + TILE_SIZE &&
-            this.position.y + this.speed * this.orientation.y + TILE_SIZE > object.position.y &&
-            this.position.y + this.speed * this.orientation.y < object.position.y + TILE_SIZE
-    }
+
 
     draw() {
         this.move()
+
         if (this.alive)
             c.fillStyle = "green"
         else
             c.fillStyle = "black"
-        c.fillRect(this.position.x, this.position.y, TILE_SIZE, TILE_SIZE)
+        c.fillRect(this.position.x, this.position.y, this.width, this.height)
+    }
+}
+
+class Body {
+    constructor({ position }) {
+        this.position = position
+        this.width = 2 * TILE_SIZE / 3
+        this.height = 2 * TILE_SIZE / 3
+    }
+
+    draw() {
+        c.fillRect(this.position.x, this.position.y, this.width, this.height)
     }
 }
 
 class Wall {
     constructor({ position }) {
         this.position = position
+        this.width = TILE_SIZE
+        this.height = TILE_SIZE
     }
 
     draw(canvas) {
         canvas.fillStyle = "red"
-        canvas.fillRect(this.position.x, this.position.y, TILE_SIZE, TILE_SIZE)
+        canvas.fillRect(this.position.x, this.position.y, this.width, this.height)
     }
 }
 
 class Food {
+    constructor({ position }) {
+        this.position = position
+        this.width = TILE_SIZE / 2
+        this.height = TILE_SIZE / 2
+    }
 
+    draw() {
+        if (checkCollision(this, player)) {
+            player.body.push(new Body({
+                position: {
+                    x: player.position.x,
+                    y: player.position.y
+                }
+            }))
+
+            this.position.x = getRandomInt(TILE_SIZE + 1, c.canvas.width - (TILE_SIZE + 1))
+            this.position.y = getRandomInt(TILE_SIZE + 1, c.canvas.height - (TILE_SIZE + 1))
+        }
+        c.fillStyle = "olive"
+        c.fillRect(this.position.x, this.position.y, this.width, this.height)
+    }
 }
 
 const walls = []
@@ -97,7 +136,14 @@ const player = new Player({
         x: 1,
         y: 0
     },
-    speed: 5
+    speed: 4
+})
+
+const food = new Food({
+    position: {
+        x: getRandomInt(TILE_SIZE + 1, c.canvas.width - (TILE_SIZE + 1)),
+        y: getRandomInt(TILE_SIZE + 1, c.canvas.height - (TILE_SIZE + 1))
+    }
 })
 
 
@@ -117,14 +163,14 @@ function frameUpdate() {
     c.clearRect(0, 0, c.canvas.width, c.canvas.height)
 
     player.draw()
+    food.draw()
 
 
 
-    msNow = window.performance.now();
-
+    msNow = window.performance.now()
     if (msNow - msPrev < 1000 / FPS) return
-
     msPrev = msNow - (msNow - msPrev) % (1000 / FPS)
+
     frames++
 }
 
@@ -170,7 +216,20 @@ window.addEventListener("keydown", (e) => {
     }
 })
 
+function checkCollision(object1, object2) {
+    return (object1.position.x + object1.width > object2.position.x &&
+        object1.position.x < object2.position.x + object2.width &&
+        object1.position.y + object2.height > object2.position.y &&
+        object1.position.y < object2.position.y + object2.height)
+}
+
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min) + min);
+}
+
 window.setInterval(() => {
-    console.log(frames)
+    //console.log(frames)
     frames = 0
 }, 1000)
