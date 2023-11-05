@@ -22,6 +22,8 @@ class Player {
         this.width = TILE_SIZE
         this.height = TILE_SIZE
         this.orientation = orientation
+        this.width = TILE_SIZE
+        this.height = TILE_SIZE
         this.speed = speed
         this.alive = true
         this.body = []
@@ -32,12 +34,10 @@ class Player {
         for (let index = 0; index < walls.length; index++) {
             const wall = walls[index];
 
-            if (checkCollision({
-                ...this, position: {
-                    x: this.position.x + this.speed * this.orientation.x,
-                    y: this.position.y + this.speed * this.orientation.y
-                }
-            }, wall)) {
+            if (checkCollision({...this, position: {
+                x: this.position.x += this.speed * this.orientation.x,
+                y: this.position.y += this.speed * this.orientation.y
+            }}, wall)) {
                 movable = false
                 this.alive = false
                 break
@@ -47,11 +47,15 @@ class Player {
         if (movable) {
             this.position.x += this.speed * this.orientation.x
             this.position.y += this.speed * this.orientation.y
-            console.log(this.body)
         }
     }
 
-
+    checkCollision(object) {
+        return this.position.x + this.speed * this.orientation.x + TILE_SIZE > object.position.x &&
+            this.position.x + this.speed * this.orientation.x < object.position.x + TILE_SIZE &&
+            this.position.y + this.speed * this.orientation.y + TILE_SIZE > object.position.y &&
+            this.position.y + this.speed * this.orientation.y < object.position.y + TILE_SIZE
+    }
 
     draw() {
         this.move()
@@ -183,6 +187,12 @@ function startAnimating(fps) {
 startAnimating(60);
 
 
+function checkCollision(object1, object2) {
+    return object1.position.x + object1.width > object2.position.x &&
+    object1.position.x < object2.position.x + object2.width &&
+    object1.position.y + object1.height > object2.position.y &&
+    object1.position.y < object2.position.y + object2.height
+}
 
 window.addEventListener("keydown", (e) => {
     switch (e.key) {
