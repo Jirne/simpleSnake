@@ -34,18 +34,19 @@ class Player {
         for (let index = 0; index < walls.length; index++) {
             const wall = walls[index];
 
-            if (checkCollision({
-                ...this, position: {
-                    x: this.position.x += this.speed * this.orientation.x,
-                    y: this.position.y += this.speed * this.orientation.y
-                }
-            }, wall)) {
+            if (checkCollision(wall,
+                {
+                    ...this, position: {
+                        x: this.position.x + this.speed * this.orientation.x,
+                        y: this.position.y + this.speed * this.orientation.y
+                    }
+                })) {
                 movable = false
                 this.alive = false
                 break
             }
-
         }
+
         if (movable) {
             this.position.x += this.speed * this.orientation.x
             this.position.y += this.speed * this.orientation.y
@@ -60,6 +61,7 @@ class Player {
             c.fillStyle = "green"
         else
             c.fillStyle = "black"
+
         c.fillRect(this.position.x, this.position.y, this.width, this.height)
     }
 }
@@ -127,13 +129,14 @@ collision.forEach((y, j) => {
     });
 });
 
+
 const player = new Player({
     position: {
         x: canvasPlayground.width / 2 - TILE_SIZE / 2,
         y: canvasPlayground.height / 2 - TILE_SIZE / 2
     },
     orientation: {
-        x: 1,
+        x: 0,
         y: 0
     },
     speed: 4
@@ -227,14 +230,6 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min) + min);
 }
 
-function checkCollision(object1, object2) {
-    return object1.x + object1.width > object2.position.x &&
-        object1.x < object2.position.x + object2.width &&
-        object1.y + object1.height > object2.position.y &&
-        object1.y < object2.position.y + object2.height
-}
-
 window.setInterval(() => {
-    //console.log(frames)
     frames = 0
 }, 1000)
